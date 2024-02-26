@@ -1,5 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import Login from '../pages/Login';
+import Register from '../pages/Register';
+import PrivateRoute from './PrivateRoute';
 
 export const routes = createBrowserRouter([
 	{
@@ -12,19 +15,23 @@ export const routes = createBrowserRouter([
 			},
 			{
 				path: '/about',
-				element: <h1>About</h1>,
+				element: <h1>This is public Route</h1>,
 			},
 			{
 				path: '/contact',
-				element: <h1>Contact</h1>,
+				element: (
+					<PrivateRoute>
+						<h1 className="text-center mt-10">This is a private Route.</h1>
+					</PrivateRoute>
+				),
 			},
 			{
 				path: '/login',
-				element: <h1>Login</h1>,
+				element: <Login />,
 			},
 			{
 				path: '/register',
-				element: <h1>Register</h1>,
+				element: <Register />,
 			},
 		],
 	},

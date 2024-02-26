@@ -1,22 +1,22 @@
 import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../redux/features/auth/authSlice';
+import { signOut } from 'firebase/auth';
+import auth from '../firebase/firebase.config';
 
 const navMenus = (
 	<>
-		<Link
-			className="font-medium text-blue-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
-			to={'/'}
-			aria-current="page"
-		>
+		<Link className="font-medium text-blue-500 " to={'/'} aria-current="page">
 			Home
 		</Link>
 		<Link
-			className="font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+			className="font-medium text-gray-600 hover:text-gray-400 "
 			to={'/about'}
 		>
 			About
 		</Link>
 		<Link
-			className="font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+			className="font-medium text-gray-600 hover:text-gray-400 "
 			to={'/contact'}
 		>
 			Contact
@@ -24,22 +24,30 @@ const navMenus = (
 	</>
 );
 const Navbar = () => {
+	const { user } = useSelector(state => state.auth);
+	const dispatch = useDispatch();
+	const handleLogout = async () => {
+		try {
+			dispatch(logout());
+			await signOut(auth);
+			console.log('user logged out');
+		} catch (error) {
+			console.log(error);
+		}
+	};
 	return (
-		<header className="flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white text-sm py-4 dark:bg-gray-800">
+		<header className="flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white text-sm py-4 ">
 			<nav
 				className="max-w-[85rem] w-full mx-auto px-4 flex flex-wrap basis-full items-center justify-between"
 				aria-label="Global"
 			>
-				<a
-					className="sm:order-1 flex-none text-xl font-semibold dark:text-white"
-					href="#"
-				>
+				<a className="sm:order-1 flex-none text-xl font-semibold " href="#">
 					Brand
 				</a>
 				<div className="sm:order-3 flex items-center gap-x-2">
 					<button
 						type="button"
-						className="sm:hidden hs-collapse-toggle p-2.5 inline-flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-transparent dark:border-gray-700 dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+						className="sm:hidden hs-collapse-toggle p-2.5 inline-flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none "
 						data-hs-collapse="#navbar-alignment"
 						aria-controls="navbar-alignment"
 						aria-label="Toggle navigation"
@@ -76,12 +84,27 @@ const Navbar = () => {
 							<path d="m6 6 12 12" />
 						</svg>
 					</button>
-					<button
-						type="button"
-						className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-white dark:hover:bg-gray-800 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
-					>
-						Login
-					</button>
+
+					{user ? (
+						<>
+							<button
+								onClick={handleLogout}
+								type="button"
+								className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none "
+							>
+								Logout
+							</button>
+						</>
+					) : (
+						<Link to={'/login'}>
+							<button
+								type="button"
+								className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none "
+							>
+								Login
+							</button>
+						</Link>
+					)}
 				</div>
 				<div
 					id="navbar-alignment"

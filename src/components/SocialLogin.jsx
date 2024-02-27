@@ -3,7 +3,11 @@ import { FcGoogle } from 'react-icons/fc';
 import { useDispatch } from 'react-redux';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import auth from '../firebase/firebase.config';
-import { authLoading, login, logout } from '../redux/features/auth/authSlice';
+import {
+	authLoading,
+	login,
+	loginError,
+} from '../redux/features/auth/authSlice';
 const googleProvider = new GoogleAuthProvider();
 const SocialLogin = () => {
 	const dispatch = useDispatch();
@@ -18,7 +22,7 @@ const SocialLogin = () => {
 			dispatch(login({ email: user.email, name: user.displayName }));
 			navigate(location.state || '/', { replace: true });
 		} catch (error) {
-			dispatch(logout());
+			dispatch(loginError(error.message));
 			console.log(error);
 		}
 	};

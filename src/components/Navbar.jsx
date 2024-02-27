@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/features/auth/authSlice';
 import { signOut } from 'firebase/auth';
@@ -6,21 +6,31 @@ import auth from '../firebase/firebase.config';
 
 const navMenus = (
 	<>
-		<Link className="font-medium text-blue-500 " to={'/'} aria-current="page">
+		<NavLink
+			className={({ isActive }) =>
+				isActive ? 'font-medium text-blue-500 ' : 'font-medium'
+			}
+			to={'/'}
+			aria-current="page"
+		>
 			Home
-		</Link>
-		<Link
-			className="font-medium text-gray-600 hover:text-gray-400 "
+		</NavLink>
+		<NavLink
+			className={({ isActive }) =>
+				isActive ? 'font-medium text-blue-500 ' : 'font-medium'
+			}
 			to={'/about'}
 		>
 			About
-		</Link>
-		<Link
-			className="font-medium text-gray-600 hover:text-gray-400 "
+		</NavLink>
+		<NavLink
+			className={({ isActive }) =>
+				isActive ? 'font-medium text-blue-500 ' : 'font-medium'
+			}
 			to={'/contact'}
 		>
 			Contact
-		</Link>
+		</NavLink>
 	</>
 );
 const Navbar = () => {

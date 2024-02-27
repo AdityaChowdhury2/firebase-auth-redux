@@ -10,7 +10,9 @@ const PrivateRoute = ({ children }) => {
 		return <h1 className="text-center mt-10">Loading...</h1>;
 	}
 	if (!user) {
-		return <Navigate to={'/login'} state={location.pathname} />;
+		return (
+			<Navigate to={'/login'} state={location.state || location.pathname} />
+		);
 	}
 
 	return <>{children}</>;

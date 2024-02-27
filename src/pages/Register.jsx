@@ -1,12 +1,62 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import SocialLogin from '../components/SocialLogin';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { ErrorMessage } from '@hookform/error-message';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import auth from '../firebase/firebase.config';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+	authLoading,
+	login,
+	loginError,
+} from '../redux/features/auth/authSlice';
+
+const schema = yup.object().shape({
+	email: yup.string().email().required(),
+	password: yup.string().min(8).required(),
+	confirmPassword: yup
+		.string()
+		.oneOf([yup.ref('password'), null], 'Passwords must match'),
+});
 
 const Register = () => {
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm({
+		resolver: yupResolver(schema),
+	});
+	const { user, loading } = useSelector(state => state.auth);
+	const navigate = useNavigate();
+	const location = useLocation();
+	const dispatch = useDispatch();
+	const onSubmit = async data => {
+		try {
+			dispatch(authLoading());
+			const response = await createUserWithEmailAndPassword(
+				auth,
+				data.email,
+				data.password
+			);
+			console.log(response.user);
+			dispatch(
+				login({ email: response.user.email, name: response.user.displayName })
+			);
+		} catch (error) {
+			dispatch(loginError(error.message));
+			console.log(error);
+		}
+	};
+	if (user) return navigate(location.state || '/', { replace: true });
+	if (loading) return <h1 className="text-center mt-10">Loading...</h1>;
 	return (
 		<section className="h-full ">
 			<div className="flex h-full items-center py-16">
 				<main className="w-full max-w-md mx-auto p-6">
-					<div className="mt-7border border-gray-200 rounded-xl shadow-sm ">
+					<div className="mt-7border border-gray-300 rounded-xl shadow-sm ">
 						<div className="p-4 sm:p-7">
 							<div className="text-center">
 								<h1 className="block text-2xl font-bold text-gray-800">
@@ -31,7 +81,7 @@ const Register = () => {
 								</div>
 
 								{/* <!-- Form --> */}
-								<form>
+								<form onSubmit={handleSubmit(onSubmit)}>
 									<div className="grid gap-y-4">
 										{/* <!-- Form Group --> */}
 										<div>
@@ -40,33 +90,21 @@ const Register = () => {
 											</label>
 											<div className="relative">
 												<input
-													type="email"
 													id="email"
-													name="email"
-													className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "
+													{...register('email')}
+													className="py-3 px-4 block w-full  ring-1 ring-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
 													required
-													aria-describedby="email-error"
 												/>
-												<div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-													<svg
-														className="size-5 text-red-500"
-														width="16"
-														height="16"
-														fill="currentColor"
-														viewBox="0 0 16 16"
-														aria-hidden="true"
-													>
-														<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-													</svg>
-												</div>
+												<ErrorMessage
+													errors={errors}
+													name="email"
+													render={({ message }) => (
+														<p className="text-xs text-red-600 mt-2">
+															{message}
+														</p>
+													)}
+												/>
 											</div>
-											<p
-												className="hidden text-xs text-red-600 mt-2"
-												id="email-error"
-											>
-												Please include a valid email address so we can get back
-												to you
-											</p>
 										</div>
 										{/* <!-- End Form Group --> */}
 
@@ -79,30 +117,20 @@ const Register = () => {
 												<input
 													type="password"
 													id="password"
-													name="password"
-													className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "
+													{...register('password')}
+													className="py-3 px-4 block w-full ring-1 ring-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "
 													required
-													aria-describedby="password-error"
 												/>
-												<div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-													<svg
-														className="size-5 text-red-500"
-														width="16"
-														height="16"
-														fill="currentColor"
-														viewBox="0 0 16 16"
-														aria-hidden="true"
-													>
-														<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-													</svg>
-												</div>
+												<ErrorMessage
+													errors={errors}
+													name="password"
+													render={({ message }) => (
+														<p className="text-xs text-red-600 mt-2">
+															{message}
+														</p>
+													)}
+												/>
 											</div>
-											<p
-												className="hidden text-xs text-red-600 mt-2"
-												id="password-error"
-											>
-												8+ characters required
-											</p>
 										</div>
 										{/* <!-- End Form Group --> */}
 
@@ -117,60 +145,22 @@ const Register = () => {
 											<div className="relative">
 												<input
 													type="password"
-													id="confirm-password"
-													name="confirm-password"
-													className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none 0"
+													{...register('confirmPassword')}
+													className="py-3 px-4 block w-full  ring-1 ring-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "
 													required
-													aria-describedby="confirm-password-error"
 												/>
-												<div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-													<svg
-														className="size-5 text-red-500"
-														width="16"
-														height="16"
-														fill="currentColor"
-														viewBox="0 0 16 16"
-														aria-hidden="true"
-													>
-														<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-													</svg>
-												</div>
+												<ErrorMessage
+													errors={errors}
+													name="confirmPassword"
+													render={({ message }) => (
+														<p className="text-xs text-red-600 mt-2">
+															{message}
+														</p>
+													)}
+												/>
 											</div>
-											<p
-												className="hidden text-xs text-red-600 mt-2"
-												id="confirm-password-error"
-											>
-												Password does not match the password
-											</p>
 										</div>
 										{/* <!-- End Form Group --> */}
-
-										{/* <!-- Checkbox --> */}
-										{/* <div className="flex items-center">
-											<div className="flex">
-												<input
-													id="remember-me"
-													name="remember-me"
-													type="checkbox"
-													className="shrink-0 mt-0.5 border-gray-200 rounded text-blue-600 pointer-events-none focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800"
-												/>
-											</div>
-											<div className="ms-3">
-												<label
-													htmlFor="remember-me"
-													className="text-sm dark:text-white"
-												>
-													I accept the{' '}
-													<a
-														className="text-blue-600 decoration-2 hover:underline font-medium dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
-														href="#"
-													>
-														Terms and Conditions
-													</a>
-												</label>
-											</div>
-										</div> */}
-										{/* <!-- End Checkbox --> */}
 
 										<button
 											type="submit"

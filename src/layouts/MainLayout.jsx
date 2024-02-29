@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -7,6 +7,8 @@ import { authLoading, login, logout } from '../redux/features/auth/authSlice';
 import auth from '../firebase/firebase.config';
 const MainLayout = () => {
 	const dispatch = useDispatch();
+	const location = useLocation();
+	console.log(location);
 
 	useEffect(() => {
 		dispatch(authLoading());

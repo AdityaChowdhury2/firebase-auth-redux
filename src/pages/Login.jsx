@@ -1,10 +1,19 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import SocialLogin from '../components/SocialLogin';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
+import { toast } from 'sonner';
+import { TbFidgetSpinner } from 'react-icons/tb';
+import {
+	authLoading,
+	login,
+	loginError,
+} from '../redux/features/auth/authSlice';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import auth from '../firebase/firebase.config';
 
 const schema = yup.object().shape({
 	email: yup.string().email().required(),
@@ -16,7 +25,7 @@ const schema = yup.object().shape({
 
 const Login = () => {
 	const { user, loading } = useSelector(state => state.auth);
-	const navigate = useNavigate();
+	const dispatch = useDispatch();
 	const location = useLocation();
 	const {
 		register,
@@ -27,14 +36,44 @@ const Login = () => {
 	});
 	const onSubmit = data => {
 		console.log(data);
+
+		dispatch(authLoading());
+		const response = signInWithEmailAndPassword(
+			auth,
+			data.email,
+			data.password
+		);
+		toast.promise(response, {
+			loading: 'Signing in...',
+			success: data => {
+				dispatch(
+					login({
+						email: data.user.email,
+						name: data.user.displayName,
+					})
+				);
+				return `Welcome ${data.user?.displayName || ''}`;
+			},
+			error: err => {
+				dispatch(loginError(err.message));
+				return err.message;
+			},
+			duration: 2000,
+		});
 	};
 
-	if (user) return navigate(location.state || '/', { replace: true });
-	if (loading) return <h1 className="text-center mt-10">Loading...</h1>;
+	if (user) return <Navigate to={location.state || '/'} replace />;
+
+	if (loading)
+		return (
+			<h1 className=" flex justify-center mt-10">
+				<TbFidgetSpinner size={30} className="animate-spin" />
+			</h1>
+		);
 
 	return (
 		<section className="h-full">
-			<div className=" flex h-full items-center py-16">
+			<div className="flex item-center md:h-[calc(100vh-69.6px)]">
 				<main className="w-full max-w-md mx-auto p-6">
 					<div className="mt-7  border border-gray-300 rounded-xl shadow-sm  ">
 						<div className="p-4 sm:p-7">
@@ -47,6 +86,7 @@ const Login = () => {
 									<Link
 										className="text-blue-600 decoration-2 hover:underline font-medium "
 										to="/register"
+										state={location.state || '/'}
 									>
 										Sign up here
 									</Link>
@@ -70,6 +110,7 @@ const Login = () => {
 											</label>
 											<div className="relative">
 												<input
+													id="email"
 													type="email"
 													{...register('email')}
 													className="py-3 px-4 block w-full ring-1 ring-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "
@@ -100,6 +141,7 @@ const Login = () => {
 											</div>
 											<div className="relative">
 												<input
+													id="password"
 													type="password"
 													{...register('password')}
 													className="py-3 px-4 block w-full ring-1 ring-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "

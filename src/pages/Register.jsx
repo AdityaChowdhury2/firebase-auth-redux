@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import SocialLogin from '../components/SocialLogin';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -12,6 +12,8 @@ import {
 	login,
 	loginError,
 } from '../redux/features/auth/authSlice';
+import { toast } from 'sonner';
+import { TbFidgetSpinner } from 'react-icons/tb';
 
 const schema = yup.object().shape({
 	email: yup.string().email().required(),
@@ -30,33 +32,48 @@ const Register = () => {
 		resolver: yupResolver(schema),
 	});
 	const { user, loading } = useSelector(state => state.auth);
-	const navigate = useNavigate();
+
 	const location = useLocation();
 	const dispatch = useDispatch();
 	const onSubmit = async data => {
-		try {
-			dispatch(authLoading());
-			const response = await createUserWithEmailAndPassword(
-				auth,
-				data.email,
-				data.password
-			);
-			console.log(response.user);
-			dispatch(
-				login({ email: response.user.email, name: response.user.displayName })
-			);
-		} catch (error) {
-			dispatch(loginError(error.message));
-			console.log(error);
-		}
+		console.log(data);
+
+		dispatch(authLoading());
+		const response = createUserWithEmailAndPassword(
+			auth,
+			data.email,
+			data.password
+		);
+		toast.promise(response, {
+			loading: 'Creating account...',
+			success: data => {
+				dispatch(
+					login({
+						email: data.user.email,
+						name: data.user.displayName,
+					})
+				);
+				return `Welcome ${data.user?.displayName || ''}`;
+			},
+			error: error => {
+				dispatch(loginError(error.message));
+				return 'Failed to create account';
+			},
+			duration: 2000,
+		});
 	};
-	if (user) return navigate(location.state || '/', { replace: true });
-	if (loading) return <h1 className="text-center mt-10">Loading...</h1>;
+	if (user) return <Navigate to={location.state || '/'} replace />;
+	if (loading)
+		return (
+			<h1 className=" flex justify-center mt-10">
+				<TbFidgetSpinner size={30} className="animate-spin" />
+			</h1>
+		);
 	return (
-		<section className="h-full ">
-			<div className="flex h-full items-center py-16">
-				<main className="w-full max-w-md mx-auto p-6">
-					<div className="mt-7border border-gray-300 rounded-xl shadow-sm ">
+		<section className="">
+			<div className="flex item-center md:h-[calc(100vh-69.6px)]">
+				<main className="w-full max-w-md mx-auto   p-6">
+					<div className="mt-7 border border-gray-300 rounded-xl shadow-sm ">
 						<div className="p-4 sm:p-7">
 							<div className="text-center">
 								<h1 className="block text-2xl font-bold text-gray-800">
@@ -144,6 +161,7 @@ const Register = () => {
 											</label>
 											<div className="relative">
 												<input
+													id="confirm-password"
 													type="password"
 													{...register('confirmPassword')}
 													className="py-3 px-4 block w-full  ring-1 ring-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "

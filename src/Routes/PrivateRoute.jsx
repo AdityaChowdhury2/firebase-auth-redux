@@ -6,7 +6,7 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 const PrivateRoute = ({ children }) => {
 	const { user, loading } = useSelector(state => state.auth);
 	const location = useLocation();
-
+	console.log(user);
 	if (loading) {
 		return (
 			<h1 className=" flex justify-center mt-10">
@@ -14,13 +14,11 @@ const PrivateRoute = ({ children }) => {
 			</h1>
 		);
 	}
-	if (!user) {
+	if (!user)
 		return (
 			<Navigate to={'/login'} state={location.state || location.pathname} />
 		);
-	}
-
-	return <>{children}</>;
+	else return <>{children}</>;
 };
 
 PrivateRoute.propTypes = {

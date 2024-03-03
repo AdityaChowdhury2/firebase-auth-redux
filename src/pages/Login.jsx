@@ -27,6 +27,7 @@ const Login = () => {
 	const { user, loading } = useSelector(state => state.auth);
 	const dispatch = useDispatch();
 	const location = useLocation();
+
 	const {
 		register,
 		handleSubmit,
@@ -34,32 +35,32 @@ const Login = () => {
 	} = useForm({
 		resolver: yupResolver(schema),
 	});
-	const onSubmit = data => {
-		console.log(data);
 
-		dispatch(authLoading());
-		const response = signInWithEmailAndPassword(
-			auth,
-			data.email,
-			data.password
-		);
-		toast.promise(response, {
-			loading: 'Signing in...',
-			success: data => {
-				dispatch(
-					login({
-						email: data.user.email,
-						name: data.user.displayName,
-					})
-				);
-				return `Welcome ${data.user?.displayName || ''}`;
-			},
-			error: err => {
-				dispatch(loginError(err.message));
-				return err.message;
-			},
-			duration: 2000,
-		});
+	const onSubmit = async data => {
+		const toastId = toast.loading('Signing in...');
+		try {
+			dispatch(authLoading());
+			const response = await signInWithEmailAndPassword(
+				auth,
+				data.email,
+				data.password
+			);
+			if (response?.user)
+				toast.success('Logged in successfully', {
+					id: toastId,
+				});
+			dispatch(
+				login({
+					email: response?.user.email,
+					name: response?.user.displayName,
+				})
+			);
+		} catch (error) {
+			toast.error(`${error.message}`, {
+				id: toastId,
+			});
+			dispatch(loginError(error.message));
+		}
 	};
 
 	if (user) return <Navigate to={location.state || '/'} replace />;
